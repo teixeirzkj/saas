@@ -1,0 +1,17 @@
+node_modules
+.next
+out
+build
+.env
+.env.local
+*.db
+*.db-journal
+prisma/dev.db*
+.DS_Store
+next-env.d.ts
+.vercel
+tsconfig.tsbuildinfo
+
+# Uploads locais de usuário (dev/demo) — nunca versionar conteúdo enviado
+public/uploads/*
+!public/uploads/.gitkeep

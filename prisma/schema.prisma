@@ -1,0 +1,526 @@
+// NEXO - schema multi-tenant.
+// Postgres (Supabase). Regra de ouro: TODA tabela de dados carrega businessId e
+// todo acesso e filtrado por ele.
+//
+// DATABASE_URL = connection string com pooler (pgbouncer, porta 6543) - usada
+//                em runtime pela aplicacao (funciona em serverless).
+// DIRECT_URL   = connection string direta (porta 5432, sem pool) - usada so
+//                por `prisma migrate`/`db push`, que precisam de prepared
+//                statements que o pooler em modo transaction nao suporta.
+// Ambas ficam na aba Project Settings > Database do Supabase.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ---------------------------------------------------------------- IDENTIDADE
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  passwordHash  String
+  avatarUrl     String?
+  role          String    @default("owner") // owner | admin | member
+  emailVerified Boolean   @default(false)
+  lastLoginAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  businessId String?
+  business   Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  resetTokens   PasswordResetToken[]
+  notifications Notification[]
+  tasks         Task[]               @relation("TaskOwner")
+  notes         Note[]
+  aiContents    AIContent[]
+
+  @@index([businessId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model Business {
+  id        String  @id @default(cuid())
+  name      String
+  slug      String  @unique
+  segment   String  @default("outro") // restaurante | barbearia | salao | moveis | prestador | loja | autonomo | outro
+  // Sobrescreve a cor de destaque do tema do segmento ("modo personalizado").
+  // Formato "R G B" (canais separados por espaço, sem parênteses) — mesmo formato
+  // das variáveis --brand-* do Theme Engine, ver src/lib/themes.ts.
+  brandColor String?
+  logoUrl   String?
+  phone     String?
+  whatsapp  String?
+  instagram String?
+  email     String?
+  address   String?
+  city      String?
+  state     String?
+  document  String? // CNPJ/CPF
+  about     String?
+
+  // Preferencias
+  currency       String    @default("BRL")
+  timezone       String    @default("America/Sao_Paulo")
+  quoteValidDays Int       @default(7)
+  primaryGoals   String    @default("[]") // JSON array vindo do onboarding
+  onboardedAt    DateTime?
+
+  // Agenda publica
+  bookingEnabled Boolean @default(true)
+  bookingSlotMin Int     @default(30)
+  workdayStart   String  @default("09:00")
+  workdayEnd     String  @default("18:00")
+  workdays       String  @default("[1,2,3,4,5]") // JSON: 0=dom..6=sab
+
+  // Catalogo publico
+  catalogEnabled  Boolean @default(true)
+  catalogHeadline String?
+  deliveryFee     Float   @default(0)
+  minOrder        Float   @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users            User[]
+  subscription     Subscription?
+  customers        Customer[]
+  quotes           Quote[]
+  services         Service[]
+  appointments     Appointment[]
+  categories       Category[]
+  products         Product[]
+  orders           Order[]
+  deals            Deal[]
+  tasks            Task[]
+  notes            Note[]
+  aiContents       AIContent[]
+  notifications    Notification[]
+  integrations     Integration[]
+  activities       Activity[]
+  messageTemplates MessageTemplate[]
+}
+
+// ---------------------------------------------------------------- BILLING
+
+model Plan {
+  id          String  @id @default(cuid())
+  code        String  @unique // free | pro | business
+  name        String
+  priceCents  Int
+  interval    String  @default("month")
+  description String
+  highlight   Boolean @default(false)
+  order       Int     @default(0)
+
+  // Limites (-1 = ilimitado)
+  maxCustomers Int    @default(-1)
+  maxQuotes    Int    @default(-1)
+  maxProducts  Int    @default(-1)
+  maxUsers     Int    @default(1)
+  aiCredits    Int    @default(0)
+  features     String @default("[]") // JSON array de strings
+
+  createdAt DateTime @default(now())
+
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id         String   @id @default(cuid())
+  businessId String   @unique
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  planId     String
+  plan       Plan     @relation(fields: [planId], references: [id])
+  status     String   @default("active") // active | trialing | past_due | canceled
+  provider   String   @default("mock") // mock | infinitepay
+  externalId String?
+
+  currentPeriodStart DateTime  @default(now())
+  currentPeriodEnd   DateTime
+  cancelAtPeriodEnd  Boolean   @default(false)
+  canceledAt         DateTime?
+
+  aiUsed    Int      @default(0)
+  aiResetAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payments Payment[]
+}
+
+model Payment {
+  id             String       @id @default(cuid())
+  subscriptionId String
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  amountCents    Int
+  status         String       @default("pending") // pending | paid | failed | refunded
+  provider       String       @default("mock")
+  externalId     String?
+  checkoutUrl    String?
+  paidAt         DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([subscriptionId])
+}
+
+// ---------------------------------------------------------------- CLIENTES (nucleo compartilhado)
+
+model Customer {
+  id             String    @id @default(cuid())
+  businessId     String
+  business       Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name           String
+  phone          String?
+  email          String?
+  company        String?
+  document       String?
+  address        String?
+  notes          String?
+  source         String? // whatsapp | instagram | indicacao | site | outro
+  tags           String    @default("[]")
+  status         String    @default("ativo") // lead | ativo | inativo
+  totalValue     Float     @default(0)
+  lastActivityAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  quotes       Quote[]
+  appointments Appointment[]
+  orders       Order[]
+  deals        Deal[]
+  tasks        Task[]
+  notesList    Note[]
+
+  @@index([businessId])
+  @@index([businessId, name])
+}
+
+// ---------------------------------------------------------------- MODULO 1: ORCAMENTOS
+
+model Quote {
+  id           String    @id @default(cuid())
+  businessId   String
+  business     Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customerId   String?
+  customer     Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  number       Int
+  title        String    @default("Orcamento")
+  status       String    @default("rascunho") // rascunho | enviado | aprovado | recusado
+  discount     Float     @default(0)
+  discountType String    @default("value") // value | percent
+  subtotal     Float     @default(0)
+  total        Float     @default(0)
+  notes        String?
+  validUntil   DateTime?
+  publicToken  String    @unique @default(cuid())
+  sentAt       DateTime?
+  respondedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  items QuoteItem[]
+
+  @@unique([businessId, number])
+  @@index([businessId, status])
+}
+
+model QuoteItem {
+  id          String @id @default(cuid())
+  quoteId     String
+  quote       Quote  @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  description String
+  quantity    Float  @default(1)
+  unitPrice   Float  @default(0)
+  total       Float  @default(0)
+  order       Int    @default(0)
+
+  @@index([quoteId])
+}
+
+// ---------------------------------------------------------------- MODULO 2: AGENDA
+
+model Service {
+  id          String   @id @default(cuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  durationMin Int      @default(30)
+  price       Float    @default(0)
+  color       String   @default("#8B2FFF")
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  appointments Appointment[]
+
+  @@index([businessId])
+}
+
+model Appointment {
+  id             String    @id @default(cuid())
+  businessId     String
+  business       Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customerId     String?
+  customer       Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  serviceId      String?
+  service        Service?  @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  title          String
+  startsAt       DateTime
+  endsAt         DateTime
+  status         String    @default("agendado") // agendado | confirmado | concluido | cancelado | faltou
+  notes          String?
+  guestName      String?
+  guestPhone     String?
+  source         String    @default("interno") // interno | publico
+  reminderSentAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([businessId, startsAt])
+}
+
+// ---------------------------------------------------------------- MODULO 3: CATALOGO
+
+model Category {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name       String
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  products Product[]
+
+  @@index([businessId])
+}
+
+model Product {
+  id          String    @id @default(cuid())
+  businessId  String
+  business    Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  name        String
+  description String?
+  price       Float     @default(0)
+  promoPrice  Float?
+  imageUrl    String?
+  available   Boolean   @default(true)
+  featured    Boolean   @default(false)
+  addons      String    @default("[]") // JSON: [{name, price}]
+  order       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  orderItems OrderItem[]
+
+  @@index([businessId])
+}
+
+model Order {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  number     Int
+  status     String   @default("novo") // novo | confirmado | preparando | pronto | concluido | cancelado
+
+  customerName  String
+  customerPhone String
+  address       String?
+  deliveryType  String  @default("entrega") // entrega | retirada
+  paymentMethod String  @default("pix") // pix | dinheiro | cartao
+
+  subtotal    Float   @default(0)
+  deliveryFee Float   @default(0)
+  total       Float   @default(0)
+  notes       String?
+  source      String  @default("publico") // publico | interno
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items OrderItem[]
+
+  @@unique([businessId, number])
+  @@index([businessId, status])
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  name      String
+  quantity  Int      @default(1)
+  unitPrice Float    @default(0)
+  addons    String   @default("[]")
+  total     Float    @default(0)
+  notes     String?
+
+  @@index([orderId])
+}
+
+// ---------------------------------------------------------------- MODULO 4: CRM
+
+model Deal {
+  id                String    @id @default(cuid())
+  businessId        String
+  business          Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customerId        String?
+  customer          Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  title             String
+  stage             String    @default("novo_lead") // novo_lead | contato | negociacao | proposta | vendido | pos_venda
+  value             Float     @default(0)
+  probability       Int       @default(50)
+  source            String?
+  notes             String?
+  lostReason        String?
+  order             Int       @default(0)
+  lastInteractionAt DateTime?
+  closedAt          DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  tasks     Task[]
+  notesList Note[]
+
+  @@index([businessId, stage])
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  businessId  String
+  business    Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  userId      String?
+  user        User?     @relation("TaskOwner", fields: [userId], references: [id], onDelete: SetNull)
+  customerId  String?
+  customer    Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  dealId      String?
+  deal        Deal?     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  dueAt       DateTime?
+  done        Boolean   @default(false)
+  doneAt      DateTime?
+  priority    String    @default("media") // baixa | media | alta
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([businessId, done])
+}
+
+model Note {
+  id         String    @id @default(cuid())
+  businessId String
+  business   Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  userId     String?
+  user       User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  dealId     String?
+  deal       Deal?     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  content    String
+  createdAt  DateTime  @default(now())
+
+  @@index([businessId])
+}
+
+// ---------------------------------------------------------------- MODULO 5: IA
+
+model AIContent {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  type       String // post | legenda | story | anuncio | oferta | descricao | reels | calendario
+  prompt     String // JSON com os campos do formulario
+  output     String
+  saved      Boolean  @default(false)
+  tokensUsed Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  @@index([businessId, type])
+}
+
+// ---------------------------------------------------------------- SUPORTE
+
+model Notification {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title      String
+  body       String?
+  type       String   @default("info") // info | success | warning | order | quote | appointment
+  href       String?
+  read       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([businessId, read])
+}
+
+model Activity {
+  id          String   @id @default(cuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  type        String // customer.created | quote.approved | order.created | appointment.created ...
+  title       String
+  description String?
+  entityType  String?
+  entityId    String?
+  createdAt   DateTime @default(now())
+
+  @@index([businessId, createdAt])
+}
+
+model Integration {
+  id          String    @id @default(cuid())
+  businessId  String
+  business    Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  provider    String // whatsapp | instagram | payment | webhook
+  status      String    @default("disconnected") // connected | disconnected | error
+  config      String    @default("{}") // JSON (segredos nunca vao para o cliente)
+  connectedAt DateTime?
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([businessId, provider])
+}
+
+model MessageTemplate {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  key        String // quote_send | appointment_confirm | order_confirm | followup | catalog_share
+  title      String
+  body       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([businessId, key])
+}

@@ -1,0 +1,254 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-display: 'Sora', var(--font-sans);
+    color-scheme: dark;
+
+    /*
+     * Theme Engine — paleta de marca por segmento.
+     * Canais RGB separados (não hex) para que classes como `bg-[rgb(var(--brand-500)/0.12)]`
+     * consigam aplicar opacidade em cima da cor dinâmica. O roxo abaixo é o padrão da
+     * marca NEXO — páginas de marketing/autenticação NUNCA sobrescrevem isso (a marca
+     * continua reconhecível ali). Páginas de uma empresa (painel + páginas públicas)
+     * recebem uma sobrescrita por request via <ThemeStyle>, calculada a partir do
+     * segmento do negócio — ver src/lib/themes.ts.
+     */
+    --brand-50: 244 238 255;
+    --brand-100: 231 219 255;
+    --brand-200: 207 184 255;
+    --brand-300: 180 140 255;
+    --brand-400: 155 93 255;
+    --brand-500: 139 47 255;
+    --brand-600: 119 20 238;
+    --brand-700: 93 15 188;
+    --brand-800: 66 11 135;
+    --brand-900: 43 7 90;
+    --brand-950: 24 3 52;
+    --brand-glow: 139 47 255;
+    --radius-card: 1rem;
+    --radius-button: 0.75rem;
+  }
+
+  * {
+    border-color: rgba(255, 255, 255, 0.06);
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-ink-950 text-white/90 antialiased;
+    font-family: var(--font-sans);
+    background-image:
+      radial-gradient(900px 500px at 12% -8%, rgb(var(--brand-500) / 0.16), transparent 60%),
+      radial-gradient(700px 420px at 92% 4%, rgb(var(--brand-700) / 0.12), transparent 62%);
+    background-attachment: fixed;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    @apply tracking-tight;
+  }
+
+  ::selection {
+    background: rgb(var(--brand-500) / 0.35);
+    color: #fff;
+  }
+
+  /* Scrollbar discreta */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--brand-500) / 0.22);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--brand-500) / 0.4);
+    background-clip: content-box;
+  }
+
+  input,
+  textarea,
+  select,
+  button {
+    font-family: inherit;
+  }
+
+  input[type='date'],
+  input[type='time'] {
+    color-scheme: dark;
+  }
+
+  /* Foco visível e consistente */
+  :focus-visible {
+    outline: 2px solid rgb(var(--brand-300) / 0.7);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Superfície padrão dos cards do produto — raio controlado pelo tema (cardStyle) */
+  .surface {
+    @apply border border-white/[0.06] bg-ink-900/70 backdrop-blur-xl;
+    border-radius: var(--radius-card);
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.04),
+      0 24px 60px -40px rgba(0, 0, 0, 0.9);
+  }
+
+  .surface-hover {
+    @apply transition-all duration-300;
+  }
+  .surface-hover:hover {
+    @apply bg-ink-850/80;
+    border-color: rgb(var(--brand-500) / 0.3);
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.06),
+      0 30px 70px -40px rgb(var(--brand-500) / 0.4);
+  }
+
+  /* Vidro para navbar/topbar */
+  .glass {
+    @apply border border-white/[0.06] bg-ink-950/70 backdrop-blur-2xl;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-br from-white via-white bg-clip-text text-transparent;
+    --tw-gradient-to: rgb(var(--brand-300));
+  }
+
+  .gradient-text-purple {
+    @apply bg-gradient-to-r bg-clip-text text-transparent;
+    --tw-gradient-from: rgb(var(--brand-300));
+    --tw-gradient-via: rgb(var(--brand-400));
+    --tw-gradient-to: rgb(var(--brand-200));
+  }
+
+  /* Borda gradiente (usada no plano destacado e no hero) */
+  .ring-gradient {
+    position: relative;
+  }
+  .ring-gradient::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      140deg,
+      rgb(var(--brand-500) / 0.7),
+      rgb(var(--brand-500) / 0) 45%,
+      rgb(var(--brand-300) / 0.4)
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .skeleton {
+    @apply relative overflow-hidden rounded-lg bg-white/[0.045];
+  }
+  .skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.07), transparent);
+    animation: shimmer 1.6s infinite;
+  }
+
+  .label {
+    @apply mb-1.5 block text-[13px] font-medium text-white/70;
+  }
+
+  .hint {
+    @apply mt-1.5 text-xs text-white/40;
+  }
+
+  .divider {
+    @apply h-px w-full bg-gradient-to-r from-transparent via-white/[0.08] to-transparent;
+  }
+
+  /* Grid de fundo para seções de marketing */
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 40%, transparent 100%);
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+@layer utilities {
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 0px);
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+  .text-pretty {
+    text-wrap: pretty;
+  }
+}
+
+/* Impressão: usada na geração de PDF do orçamento */
+@media print {
+  @page {
+    margin: 14mm;
+    size: A4;
+  }
+  html,
+  body {
+    background: #fff !important;
+    color: #111 !important;
+    background-image: none !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-plain {
+    background: #fff !important;
+    color: #111 !important;
+    border-color: #e5e5e5 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
