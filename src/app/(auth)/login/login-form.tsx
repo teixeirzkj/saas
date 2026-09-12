@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { AlertCircle, ArrowRight, Mail, Wand2 } from 'lucide-react';
+import { AlertCircle, ArrowRight, Mail } from 'lucide-react';
 import { useActionState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -83,32 +83,6 @@ export function LoginForm({ next }: { next?: string }) {
           Criar conta
         </Link>
       </p>
-
-      {/* Atalho de demonstração — preenche as credenciais semeadas */}
-      <div className="mt-8 rounded-2xl border border-nexo-500/20 bg-nexo-500/[0.06] p-4">
-        <div className="flex items-start gap-2.5">
-          <Wand2 className="mt-0.5 h-4 w-4 shrink-0 text-nexo-300" />
-          <div className="min-w-0 flex-1">
-            <p className="text-[13px] font-semibold text-white">Conta de demonstração</p>
-            <p className="mt-1 text-xs leading-relaxed text-white/45">
-              O painel já vem com clientes, orçamentos, agenda, pedidos e vendas preenchidos.
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                const form = document.querySelector('form');
-                if (!form) return;
-                (form.querySelector('[name="email"]') as HTMLInputElement).value = 'joao@nexo.app';
-                (form.querySelector('[name="password"]') as HTMLInputElement).value = 'nexo1234';
-              }}
-              className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-nexo-500/30 bg-nexo-500/12 px-3 py-1.5 text-[12px] font-semibold text-nexo-200 transition hover:bg-nexo-500/20"
-            >
-              Preencher joao@nexo.app
-              <ArrowRight className="h-3 w-3" />
-            </button>
-          </div>
-        </div>
-      </div>
     </motion.div>
   );
 }
