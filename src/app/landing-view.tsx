@@ -18,10 +18,11 @@ import {
 import { DashboardMock } from '@/components/marketing/dashboard-mock';
 import { SiteFooter } from '@/components/marketing/site-footer';
 import { SiteHeader } from '@/components/marketing/site-header';
-import { ButtonLink } from '@/components/ui/button';
+import { ButtonAnchor, ButtonLink } from '@/components/ui/button';
 import { FadeIn, Stagger, StaggerItem } from '@/components/ui/misc';
 import { PLANS, planPriceLabel } from '@/lib/plans';
 import { cn } from '@/lib/utils';
+import { salesLink } from '@/lib/whatsapp';
 
 // ------------------------------------------------------------------ dados das seções
 
@@ -138,10 +139,10 @@ export function LandingView({ isLoggedIn }: { isLoggedIn: boolean }) {
             transition={{ duration: 0.6, delay: 0.24, ease: [0.22, 1, 0.36, 1] }}
             className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
           >
-            <ButtonLink href="/cadastro" size="lg">
+            <ButtonAnchor href={salesLink()} size="lg">
               Começar agora
               <ArrowRight className="h-4 w-4" />
-            </ButtonLink>
+            </ButtonAnchor>
             <ButtonLink href="#produto" variant="outline" size="lg">
               <PlayCircle className="h-4 w-4" />
               Ver como funciona
@@ -154,7 +155,7 @@ export function LandingView({ isLoggedIn }: { isLoggedIn: boolean }) {
             transition={{ duration: 0.6, delay: 0.32 }}
             className="mt-3 text-[12.5px] text-white/30"
           >
-            Grátis para começar · Sem cartão de crédito
+            Planos a partir de R$ 19,90/mês · Fale com a gente pelo WhatsApp
           </motion.p>
         </div>
 
@@ -263,7 +264,7 @@ export function LandingView({ isLoggedIn }: { isLoggedIn: boolean }) {
               Planos simples para crescer com você.
             </h2>
             <p className="mt-4 text-[15px] leading-relaxed text-white/50">
-              Menos aplicativos. Mais controle. Comece grátis, sem cartão de crédito.
+              Menos aplicativos. Mais controle. Fale com a gente e comece ainda hoje.
             </p>
           </FadeIn>
 
@@ -298,14 +299,14 @@ export function LandingView({ isLoggedIn }: { isLoggedIn: boolean }) {
                       </li>
                     ))}
                   </ul>
-                  <ButtonLink
-                    href={`/cadastro?plano=${plan.code}`}
+                  <ButtonAnchor
+                    href={salesLink(plan.name)}
                     variant={plan.highlight ? 'primary' : 'secondary'}
                     fullWidth
                     className="mt-6"
                   >
                     Começar agora
-                  </ButtonLink>
+                  </ButtonAnchor>
                 </div>
               </StaggerItem>
             ))}
@@ -351,10 +352,10 @@ export function LandingView({ isLoggedIn }: { isLoggedIn: boolean }) {
               Clientes, vendas, agenda e marketing. Sem complicação.
             </p>
             <div className="relative mt-8 flex justify-center">
-              <ButtonLink href="/cadastro" size="lg">
-                Começar grátis
+              <ButtonAnchor href={salesLink()} size="lg">
+                Começar agora
                 <ArrowRight className="h-4 w-4" />
-              </ButtonLink>
+              </ButtonAnchor>
             </div>
           </div>
         </FadeIn>

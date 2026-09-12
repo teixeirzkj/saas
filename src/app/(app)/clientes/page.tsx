@@ -66,6 +66,8 @@ export default async function CustomersPage({
       openNew={novo === '1'}
       limit={plan.limits.maxCustomers}
       planName={plan.name}
+      planCode={plan.code}
+      businessName={business.name}
     />
   );
 }

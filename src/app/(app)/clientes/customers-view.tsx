@@ -5,6 +5,7 @@ import { Plus, Users } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { WhatsAppSend } from '@/components/shared/whatsapp-send';
+import { BulkSendButton } from './bulk-send';
 import { Badge, StatusBadge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { SearchInput } from '@/components/ui/input';
@@ -38,6 +39,8 @@ export function CustomersView({
   openNew,
   limit,
   planName,
+  planCode,
+  businessName,
 }: {
   customers: Customer[];
   total: number;
@@ -47,6 +50,8 @@ export function CustomersView({
   openNew: boolean;
   limit: number;
   planName: string;
+  planCode: string;
+  businessName: string;
 }) {
   const router = useRouter();
   const [search, setSearch] = useState(query);
@@ -92,10 +97,13 @@ export function CustomersView({
         title="Clientes"
         description="Um cadastro só, usado por todos os módulos do NEXO."
         action={
-          <Button onClick={() => setFormOpen(true)}>
-            <Plus className="h-4 w-4" />
-            Novo cliente
-          </Button>
+          <>
+            <BulkSendButton customers={customers} businessName={businessName} planCode={planCode} />
+            <Button onClick={() => setFormOpen(true)}>
+              <Plus className="h-4 w-4" />
+              Novo cliente
+            </Button>
+          </>
         }
       >
         <div className="flex flex-col gap-3">

@@ -14,7 +14,7 @@ import { signupAction, type ActionState } from '../actions';
 
 const initialState: ActionState = {};
 
-const BENEFITS = ['Grátis para começar, sem cartão', 'Pronto para usar em 2 minutos', 'Cancele quando quiser'];
+const BENEFITS = ['7 dias de teste grátis', 'Pronto para usar em 2 minutos', 'Cancele quando quiser'];
 
 export function SignupForm({ plan }: { plan?: string }) {
   const [state, action, pending] = useActionState(signupAction, initialState);
@@ -32,7 +32,7 @@ export function SignupForm({ plan }: { plan?: string }) {
       <p className="mt-2 text-sm text-white/45">
         {selectedPlan
           ? `Crie sua conta para continuar com o plano ${selectedPlan.name}.`
-          : 'Crie sua conta grátis. Leva menos de 2 minutos.'}
+          : 'Crie sua conta e teste grátis por 7 dias. Leva menos de 2 minutos.'}
       </p>
 
       <ul className="mt-5 flex flex-wrap gap-x-4 gap-y-2">

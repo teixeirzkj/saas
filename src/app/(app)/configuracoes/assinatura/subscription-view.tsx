@@ -84,7 +84,7 @@ export function SubscriptionView({
                   Fazer upgrade
                 </ButtonLink>
               )}
-              {planCode !== 'free' && !cancelAtPeriodEnd && (
+              {!cancelAtPeriodEnd && (
                 <Button variant="ghost" onClick={() => setConfirmCancel(true)}>
                   <X className="h-4 w-4" />
                   Cancelar assinatura
@@ -148,7 +148,7 @@ export function SubscriptionView({
         open={confirmCancel}
         onClose={() => setConfirmCancel(false)}
         title="Cancelar sua assinatura?"
-        description="Você continua com acesso completo até o fim do período já pago. Depois disso, sua conta volta para o plano Grátis."
+        description="Você continua com acesso completo até o fim do período já pago. Depois disso, sua conta volta para o plano Básico."
         confirmLabel="Cancelar assinatura"
         danger
         loading={pending}

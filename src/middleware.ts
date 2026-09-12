@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
+import { ADMIN_SESSION_COOKIE, verifyAdminSession } from '@/lib/admin-session';
 import { SESSION_COOKIE, verifySession } from '@/lib/session';
 
 /**
@@ -17,6 +18,30 @@ const AUTH_ROUTES = ['/login', '/cadastro', '/recuperar-senha'];
 
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
+
+  // Painel de admin: sessão totalmente separada da sessão de tenant, checada
+  // antes de qualquer outra coisa (nunca deve cair nas regras de PROTECTED).
+  if (pathname === '/admin' || pathname.startsWith('/admin/')) {
+    const adminToken = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
+    const adminSession = await verifyAdminSession(adminToken);
+    const isAdminLogin = pathname === '/admin/login';
+
+    if (!isAdminLogin && !adminSession) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/admin/login';
+      url.search = '';
+      return NextResponse.redirect(url);
+    }
+
+    if (isAdminLogin && adminSession) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/admin';
+      url.search = '';
+      return NextResponse.redirect(url);
+    }
+
+    return NextResponse.next();
+  }
 
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   const session = await verifySession(token);

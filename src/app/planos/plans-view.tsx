@@ -4,10 +4,11 @@ import { Check, Minus, Sparkles, X } from 'lucide-react';
 
 import { SiteFooter } from '@/components/marketing/site-footer';
 import { SiteHeader } from '@/components/marketing/site-header';
-import { ButtonLink } from '@/components/ui/button';
+import { ButtonAnchor } from '@/components/ui/button';
 import { FadeIn, Stagger, StaggerItem } from '@/components/ui/misc';
 import { MATRIX_ROWS, PLANS, planPriceLabel } from '@/lib/plans';
 import { cn } from '@/lib/utils';
+import { salesLink } from '@/lib/whatsapp';
 
 const FAQ = [
   {
@@ -37,7 +38,7 @@ export function PlansView({ isLoggedIn }: { isLoggedIn: boolean }) {
             Escolha o plano certo para o seu momento
           </h1>
           <p className="mt-4 text-[15px] leading-relaxed text-white/50">
-            Comece grátis, sem cartão de crédito. Faça upgrade quando o seu negócio crescer.
+            Fale com a gente pelo WhatsApp e comece ainda hoje. Faça upgrade quando o seu negócio crescer.
           </p>
         </FadeIn>
 
@@ -68,15 +69,15 @@ export function PlansView({ isLoggedIn }: { isLoggedIn: boolean }) {
                   {plan.priceCents > 0 && <span className="pb-1.5 text-[13px] text-white/40">/mês</span>}
                 </div>
 
-                <ButtonLink
-                  href={`/cadastro?plano=${plan.code}`}
+                <ButtonAnchor
+                  href={salesLink(plan.name)}
                   variant={plan.highlight ? 'primary' : 'secondary'}
                   size="lg"
                   fullWidth
                   className="mt-6"
                 >
-                  {plan.priceCents === 0 ? 'Começar grátis' : 'Começar agora'}
-                </ButtonLink>
+                  Começar agora
+                </ButtonAnchor>
 
                 <ul className="mt-7 space-y-3">
                   {plan.features.map((feature) => (

@@ -199,6 +199,7 @@ export function ConfirmDialog({
   cancelLabel = 'Cancelar',
   danger,
   loading,
+  children,
 }: {
   open: boolean;
   onClose: () => void;
@@ -209,6 +210,8 @@ export function ConfirmDialog({
   cancelLabel?: string;
   danger?: boolean;
   loading?: boolean;
+  /** Conteúdo extra opcional, renderizado abaixo da descrição (ex.: um campo de motivo). */
+  children?: React.ReactNode;
 }) {
   return (
     <Modal
@@ -230,6 +233,7 @@ export function ConfirmDialog({
       <p className="text-sm leading-relaxed text-white/60">
         {description ?? 'Essa ação não pode ser desfeita.'}
       </p>
+      {children && <div className="mt-3">{children}</div>}
     </Modal>
   );
 }

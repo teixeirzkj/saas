@@ -7,6 +7,20 @@ export function waLink(phone: string | null | undefined, message: string) {
   return digits ? `https://wa.me/${digits}?text=${text}` : `https://wa.me/?text=${text}`;
 }
 
+/**
+ * Número comercial da própria NEXO — a venda dos planos é feita por WhatsApp,
+ * não por checkout self-service. Todos os CTAs de "Começar agora" da landing
+ * e de /planos apontam pra cá.
+ */
+export const NEXO_SALES_WHATSAPP = '74999188851';
+
+export function salesLink(planName?: string) {
+  const message = planName
+    ? `Olá! Quero contratar o plano ${planName} da NEXO.`
+    : 'Olá! Quero saber mais sobre os planos da NEXO.';
+  return waLink(NEXO_SALES_WHATSAPP, message);
+}
+
 export type TemplateVars = Record<string, string | number | Date | null | undefined>;
 
 /** Substitui {chave} pelos valores informados. */

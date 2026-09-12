@@ -97,6 +97,14 @@ model Business {
   deliveryFee     Float   @default(0)
   minOrder        Float   @default(0)
 
+  // Moderação (painel de admin — nunca setado pelo próprio negócio)
+  blocked       Boolean   @default(false)
+  blockedReason String?
+  blockedAt     DateTime?
+
+  // Nota livre do admin sobre pagamento (ex.: "combinado Pix todo dia 5")
+  adminNotes String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -166,6 +174,23 @@ model Subscription {
   updatedAt DateTime @updatedAt
 
   payments Payment[]
+}
+
+// ---------------------------------------------------------------- ADMIN (dono da NEXO)
+
+/**
+ * Conta de administrador da plataforma — NÃO tem relação com Business/User de
+ * tenant nenhum. Login separado (`/admin/login`), cookie separado
+ * (`src/lib/admin-session.ts`), sem cadastro público. Criada só via seed
+ * (`npm run db:seed` ou script `scripts/create-admin.mjs`).
+ */
+model AdminUser {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model Payment {

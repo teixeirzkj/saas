@@ -80,7 +80,7 @@ export function LoginForm({ next }: { next?: string }) {
       <p className="mt-6 text-center text-sm text-white/45">
         Ainda não tem conta?{' '}
         <Link href="/cadastro" className="font-semibold text-nexo-300 transition hover:text-nexo-200">
-          Começar grátis
+          Criar conta
         </Link>
       </p>
 

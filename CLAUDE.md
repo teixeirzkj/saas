@@ -265,6 +265,73 @@ serverless com filesystem somente leitura (SQLite em arquivo não funciona lá).
   dados de demonstração do dev). Rodar `npm run db:reset` de novo APAGA e
   recria esses dados — só fazer isso de propósito.
 
+## Painel de Admin + vendas por WhatsApp (sem self-service de verdade)
+
+O modelo comercial mudou: a NEXO não vende mais sozinha (checkout automático).
+Quem fecha o plano é o dono da plataforma, por WhatsApp, e quem cria/gerencia
+as contas dos clientes é ele mesmo, pelo painel `/admin` — **totalmente
+separado** do painel de cada negócio (`/dashboard`).
+
+**Preços atuais** (`src/lib/plans.ts`, sincronizado no banco via
+`node scripts/update-plans.mjs` — não precisa de `db:reset`):
+- **Básico** (code `free`, mantido por compatibilidade — é só o nome interno):
+  R$ 19,90/mês, clientes ilimitados, 20 orçamentos/mês.
+- **Profissional**: R$ 39,90/mês, clientes ilimitados, 90 orçamentos/mês.
+- **Negócio**: R$ 79,90/mês, clientes e orçamentos ilimitados, disparo em
+  massa (`bulkSend` em `FEATURE_GATES`), automações de follow-up.
+
+**CTAs "Começar agora"** na landing, `/planos` e no header do site **não vão
+mais para `/cadastro`** — abrem o WhatsApp (`salesLink()` em
+`src/lib/whatsapp.ts`) para o número `74999188851` (`NEXO_SALES_WHATSAPP`),
+com uma mensagem já preenchida citando o plano. `/cadastro` continua existindo
+(usado internamente e como fallback), mas agora cria a assinatura com status
+`trialing` por 7 dias, não `active` de graça — nenhum plano é grátis.
+
+**Disparo em massa** (`src/app/(app)/clientes/bulk-send.tsx`, plano Negócio):
+não é um envio automático de verdade — não existe API oficial de WhatsApp
+configurada (decisão consciente, ver seção de arquitetura). É uma fila: você
+filtra clientes por status, escreve uma mensagem com `{cliente}`/`{empresa}`,
+e o painel abre um link `wa.me` pronto por vez, cada um você aperta enviar.
+
+### Painel `/admin`
+
+- **Auth totalmente separada da sessão de tenant**: `src/lib/admin-session.ts`
+  (cookie `nexo_admin_session`, JWT com `issuer: 'nexo-admin'`) +
+  `src/lib/admin-auth.ts` (`requireAdmin()`). Reaproveita o mesmo
+  `AUTH_SECRET`, mas o `issuer` diferente garante que um cookie de negócio
+  nunca é aceito como sessão de admin, e vice-versa (testado manualmente).
+- **Estrutura de rotas — cuidado ao mexer**: `src/app/admin/login/` fica
+  **fora** do route group `(protected)`; `src/app/admin/(protected)/layout.tsx`
+  é quem chama `requireAdmin()` e envolve `/admin` (dashboard) e
+  `/admin/contas/*`. **Nunca mova a página de login pra dentro de
+  `(protected)`** — foi exatamente esse erro que causou um loop de redirect
+  (login exigindo estar logado pra ver o login) numa primeira versão desta
+  função. `src/app/admin/actions.ts` fica fora de `(protected)` também (não é
+  rota, então não importa) — os componentes client-side importam as actions
+  por alias (`@/app/admin/actions`), não por caminho relativo, porque a
+  profundidade de pastas muda dependendo de onde o arquivo está.
+- **Sem cadastro público de admin**: a única conta foi criada via
+  `node scripts/create-admin.mjs "Nome" email senha` (não destrutivo, só faz
+  upsert de uma linha em `AdminUser`). Rodar de novo com o mesmo e-mail troca
+  a senha.
+- **Bloqueio de conta**: `Business.blocked`/`blockedReason`/`blockedAt`.
+  Checado em `requireBusiness()`/`requireUser()` (redireciona pra
+  `/bloqueado`) e em `loginAction` (recusa o login com a mensagem antes de
+  criar sessão). Toggle pelo admin em `/admin/contas/[id]`.
+- **Pagamento/vencimento**: reaproveita `Subscription.status` e
+  `.currentPeriodEnd` — não criei um sistema de cobrança novo. O admin edita
+  isso manualmente em `/admin/contas/[id]` (trocar plano, situação,
+  vencimento, uma nota livre em `Business.adminNotes`) ou usa o atalho
+  "Marcar como pago" (`markPaid` em `src/app/admin/actions.ts`), que empurra o
+  vencimento +30 dias e registra um `Payment` com `provider: 'manual'`.
+- **Criar conta pelo admin** (`/admin/contas/nova`): gera uma senha aleatória
+  na hora (`generatePassword()`), cria `Business` + `User` (role `owner`) +
+  `Subscription` já `active` (pula onboarding — `onboardedAt` setado na
+  criação), mostra a senha uma vez na tela pra copiar e mandar pro cliente.
+- **Excluir conta**: `deleteBusinessAccount` faz `db.business.delete(...)` —
+  todo o resto (clientes, orçamentos, pedidos, etc.) cai por cascade, já que
+  toda tabela de tenant tem `onDelete: Cascade` apontando pra `Business`.
+
 ## Cuidados ao continuar / dívidas conhecidas
 
 - Sempre rodar `npx tsc --noEmit` (rápido) e, antes de considerar uma tarefa

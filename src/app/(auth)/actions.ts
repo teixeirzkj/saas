@@ -36,6 +36,14 @@ export async function loginAction(_prev: ActionState, formData: FormData): Promi
     return { error: 'E-mail ou senha incorretos.' };
   }
 
+  if (user.business?.blocked) {
+    return {
+      error:
+        user.business.blockedReason ||
+        'Sua conta está temporariamente bloqueada. Fale com o suporte para regularizar.',
+    };
+  }
+
   await db.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
   await setSessionCookie({
     userId: user.id,

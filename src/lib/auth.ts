@@ -76,6 +76,7 @@ export type AppContext = AuthContext & {
 export async function requireBusiness(): Promise<AppContext> {
   const ctx = await getAuthContext();
   if (!ctx) redirect('/login');
+  if (ctx.business?.blocked) redirect('/bloqueado');
   if (!ctx.business) redirect('/onboarding');
   if (!ctx.business.onboardedAt) redirect('/onboarding');
   return ctx as AppContext;
@@ -85,6 +86,7 @@ export async function requireBusiness(): Promise<AppContext> {
 export async function requireUser() {
   const ctx = await getAuthContext();
   if (!ctx) redirect('/login');
+  if (ctx.business?.blocked) redirect('/bloqueado');
   return ctx;
 }
 
@@ -112,8 +114,8 @@ export async function createAccount(input: {
   const passwordHash = await hashPassword(input.password);
   const slug = await uniqueSlug(input.businessName || input.name);
 
-  const freePlan = await db.plan.findUnique({ where: { code: 'free' } });
-  if (!freePlan) return { error: 'Planos não inicializados. Rode "npm run db:seed".' };
+  const entryPlan = await db.plan.findUnique({ where: { code: 'free' } });
+  if (!entryPlan) return { error: 'Planos não inicializados. Rode "npm run db:seed".' };
 
   const business = await db.business.create({
     data: {
@@ -122,9 +124,12 @@ export async function createAccount(input: {
       segment: input.segment || 'outro',
       subscription: {
         create: {
-          planId: freePlan.id,
-          status: 'active',
-          currentPeriodEnd: addDays(new Date(), 30),
+          planId: entryPlan.id,
+          // Todos os planos são pagos agora — o cadastro público libera um
+          // período de teste, não uma assinatura ativa. Quem confirma o
+          // pagamento (via WhatsApp) é o admin, pelo painel /admin.
+          status: 'trialing',
+          currentPeriodEnd: addDays(new Date(), 7),
           aiResetAt: new Date(),
         },
       },

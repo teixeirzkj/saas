@@ -5,7 +5,8 @@ import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
 
 import { Logo } from '@/components/shared/logo';
-import { ButtonLink } from '@/components/ui/button';
+import { ButtonAnchor, ButtonLink } from '@/components/ui/button';
+import { salesLink } from '@/lib/whatsapp';
 
 const LINKS = [
   { href: '/#produto', label: 'Produto' },
@@ -44,9 +45,9 @@ export function SiteHeader({ isLoggedIn }: { isLoggedIn?: boolean }) {
               <ButtonLink href="/login" variant="ghost" size="sm">
                 Entrar
               </ButtonLink>
-              <ButtonLink href="/cadastro" size="sm">
-                Começar grátis
-              </ButtonLink>
+              <ButtonAnchor href={salesLink()} size="sm">
+                Começar agora
+              </ButtonAnchor>
             </>
           )}
         </div>
@@ -108,9 +109,9 @@ export function SiteHeader({ isLoggedIn }: { isLoggedIn?: boolean }) {
                   </ButtonLink>
                 ) : (
                   <>
-                    <ButtonLink href="/cadastro" fullWidth>
-                      Começar grátis
-                    </ButtonLink>
+                    <ButtonAnchor href={salesLink()} fullWidth>
+                      Começar agora
+                    </ButtonAnchor>
                     <ButtonLink href="/login" variant="secondary" fullWidth>
                       Entrar
                     </ButtonLink>
