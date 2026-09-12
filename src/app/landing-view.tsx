@@ -104,6 +104,27 @@ export function LandingView({ isLoggedIn }: { isLoggedIn: boolean }) {
         <div className="pointer-events-none absolute -left-32 -top-20 h-96 w-96 animate-pulse-glow rounded-full bg-nexo-600/25 blur-[120px]" />
         <div className="pointer-events-none absolute -right-24 top-40 h-80 w-80 animate-pulse-glow rounded-full bg-nexo-800/25 blur-[120px]" />
 
+        {/* Globo no celular — atrás do texto, bem apagado, some antes do mockup */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-[440px] lg:hidden">
+          <div
+            className="absolute inset-0"
+            style={{
+              maskImage: 'linear-gradient(to bottom, black 0%, black 48%, transparent 92%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 48%, transparent 92%)',
+            }}
+          >
+            <Image
+              src="/images/hero-globe.png"
+              alt=""
+              fill
+              priority
+              sizes="(min-width: 1024px) 0px, 100vw"
+              className="object-cover object-center opacity-40"
+            />
+          </div>
+          <div className="absolute inset-0 bg-ink-950/55" />
+        </div>
+
         {/* Globo — fica no fundo, do lado direito, se fundindo com o preto do site */}
         <div
           className="pointer-events-none absolute inset-y-0 right-0 hidden w-[62%] lg:block"
@@ -183,17 +204,6 @@ export function LandingView({ isLoggedIn }: { isLoggedIn: boolean }) {
                 Planos a partir de R$ 19,90/mês · Fale com a gente pelo WhatsApp
               </motion.p>
             </div>
-
-            {/* Em telas pequenas o globo não cabe atrás do texto — mostra aqui, no fluxo normal */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              className="relative mx-auto aspect-[16/10] w-full max-w-sm overflow-hidden rounded-2xl border border-white/[0.07] sm:max-w-md lg:hidden"
-            >
-              <Image src="/images/hero-globe.png" alt="" fill sizes="(max-width: 1024px) 90vw, 0px" className="object-cover" />
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950/70 via-transparent to-transparent" />
-            </motion.div>
           </div>
         </div>
 
