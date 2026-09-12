@@ -233,6 +233,38 @@ foto" + preview + fallback "ou colar um link"; usado em logo da empresa
 (`business-form.tsx`), avatar (`profile-form.tsx`) e foto de produto
 (`product-form.tsx`). `public/uploads/` está no `.gitignore` (com `.gitkeep`).
 
+## Deploy (Vercel + Supabase)
+
+Migrado de SQLite (dev) para **Postgres via Supabase**, porque o Vercel roda em
+serverless com filesystem somente leitura (SQLite em arquivo não funciona lá).
+
+- **Repositório**: `https://github.com/teixeirzkj/saas` (branch `main`).
+- **Banco**: projeto Supabase "saas" (org "Riquelme Teixeira's Org", região
+  `sa-east-1`). `prisma/schema.prisma` usa `datasource db { provider =
+  "postgresql"; url = env("DATABASE_URL"); directUrl = env("DIRECT_URL") }`.
+  `DATABASE_URL` é o pooler modo *transaction* (porta 6543, `?pgbouncer=true`,
+  usado em runtime); `DIRECT_URL` é a conexão direta (porta 5432, sem pool,
+  usada só por `prisma db push`/`migrate`) — necessário porque o pooler em modo
+  transaction não suporta os prepared statements que essas ferramentas usam.
+  As duas ficam em Supabase → botão **"Connect"** → aba **ORMs** → **Prisma**.
+- **Upload de imagem**: `src/lib/uploads.ts` detecta `BLOB_READ_WRITE_TOKEN` e,
+  se presente, usa **Vercel Blob** (`@vercel/blob`) em vez do disco local. Essa
+  env var é criada automaticamente ao ativar **Storage → Create Database →
+  Blob** no dashboard do projeto na Vercel — nenhuma configuração manual além
+  de ativar o recurso.
+- **Variáveis de ambiente que precisam existir no projeto Vercel** (Settings →
+  Environment Variables): `DATABASE_URL`, `DIRECT_URL`, `AUTH_SECRET` (gerar
+  um novo, não reusar o de dev), `NEXT_PUBLIC_APP_URL` (a URL pública do
+  deploy, ex. `https://saas-xxxx.vercel.app`), `PAYMENT_PROVIDER=mock` (ou
+  `infinitepay` com `INFINITEPAY_HANDLE`/`INFINITEPAY_API_KEY` se for usar de
+  verdade), `PAYMENT_WEBHOOK_SECRET`. `ANTHROPIC_API_KEY` é opcional (sem ela,
+  o Nexo IA usa o gerador local). `BLOB_READ_WRITE_TOKEN` é criada sozinha ao
+  ativar o Blob Storage.
+- **Login/cadastro em produção não usam mais `joao@nexo.app`/dados fake por
+  padrão** — o banco Supabase já foi populado com `npm run db:seed` (mesmos
+  dados de demonstração do dev). Rodar `npm run db:reset` de novo APAGA e
+  recria esses dados — só fazer isso de propósito.
+
 ## Cuidados ao continuar / dívidas conhecidas
 
 - Sempre rodar `npx tsc --noEmit` (rápido) e, antes de considerar uma tarefa
