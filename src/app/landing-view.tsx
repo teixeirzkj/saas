@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import {
   ArrowRight,
   Calendar,
@@ -98,74 +99,111 @@ export function LandingView({ isLoggedIn }: { isLoggedIn: boolean }) {
       <SiteHeader isLoggedIn={isLoggedIn} />
 
       {/* ---------------------------------------------------------- HERO */}
-      <section className="relative overflow-hidden pb-20 pt-14 sm:pb-28 sm:pt-20">
+      <section className="relative overflow-hidden pb-10 pt-8 sm:pb-28 sm:pt-20">
         <div className="pointer-events-none absolute inset-0 bg-grid opacity-50" />
         <div className="pointer-events-none absolute -left-32 -top-20 h-96 w-96 animate-pulse-glow rounded-full bg-nexo-600/25 blur-[120px]" />
         <div className="pointer-events-none absolute -right-24 top-40 h-80 w-80 animate-pulse-glow rounded-full bg-nexo-800/25 blur-[120px]" />
 
-        <div className="relative mx-auto max-w-4xl px-4 text-center sm:px-6">
-          <motion.span
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 rounded-full border border-nexo-500/25 bg-nexo-500/10 px-3.5 py-1.5 text-[12px] font-semibold text-nexo-200"
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-            5 ferramentas. 1 plataforma.
-          </motion.span>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
-            className="gradient-text mt-6 text-balance font-display text-[36px] font-semibold leading-[1.08] tracking-tight sm:text-[52px] lg:text-[58px]"
-          >
-            Tudo que seu negócio precisa. Em um só lugar.
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.16, ease: [0.22, 1, 0.36, 1] }}
-            className="mx-auto mt-5 max-w-2xl text-pretty text-[16px] leading-relaxed text-white/55 sm:text-[18px]"
-          >
-            Organize clientes, orçamentos, agenda, vendas e conteúdo em uma plataforma simples, rápida e
-            inteligente.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.24, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
-          >
-            <ButtonAnchor href={salesLink()} size="lg">
-              Começar agora
-              <ArrowRight className="h-4 w-4" />
-            </ButtonAnchor>
-            <ButtonLink href="#produto" variant="outline" size="lg">
-              <PlayCircle className="h-4 w-4" />
-              Ver como funciona
-            </ButtonLink>
-          </motion.div>
-
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.32 }}
-            className="mt-3 text-[12.5px] text-white/30"
-          >
-            Planos a partir de R$ 19,90/mês · Fale com a gente pelo WhatsApp
-          </motion.p>
+        {/* Globo — fica no fundo, do lado direito, se fundindo com o preto do site */}
+        <div
+          className="pointer-events-none absolute inset-y-0 right-0 hidden w-[62%] lg:block"
+          style={{
+            maskImage:
+              'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.55) 22%, black 42%, black 78%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%)',
+            WebkitMaskImage:
+              'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.55) 22%, black 42%, black 78%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%)',
+            maskComposite: 'intersect',
+            WebkitMaskComposite: 'source-in',
+          }}
+        >
+          <Image
+            src="/images/hero-globe.png"
+            alt=""
+            fill
+            priority
+            sizes="(min-width: 1024px) 62vw, 0px"
+            className="object-cover opacity-80"
+          />
         </div>
 
-        <div className="relative mt-14 px-4 sm:mt-16 sm:px-6">
+        <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="grid items-center gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-6">
+            <div className="text-center lg:text-left">
+              <motion.span
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="inline-flex items-center gap-2 rounded-full border border-nexo-500/25 bg-nexo-500/10 px-3.5 py-1.5 text-[12px] font-semibold text-nexo-200"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                5 ferramentas. 1 plataforma.
+              </motion.span>
+
+              <motion.h1
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+                className="gradient-text mt-4 text-balance font-display text-[30px] font-semibold leading-[1.1] tracking-tight sm:mt-6 sm:text-[52px] lg:text-[50px] xl:text-[56px]"
+              >
+                Tudo que seu negócio precisa. Em um só lugar.
+              </motion.h1>
+
+              <motion.p
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.16, ease: [0.22, 1, 0.36, 1] }}
+                className="mx-auto mt-3 max-w-2xl text-pretty text-[14.5px] leading-relaxed text-white/55 sm:mt-5 sm:text-[18px] lg:mx-0"
+              >
+                Organize clientes, orçamentos, agenda, vendas e conteúdo em uma plataforma simples, rápida e
+                inteligente.
+              </motion.p>
+
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.24, ease: [0.22, 1, 0.36, 1] }}
+                className="mt-5 flex flex-col items-center justify-center gap-2.5 sm:mt-8 sm:flex-row sm:gap-3 lg:justify-start"
+              >
+                <ButtonAnchor href={salesLink()} size="lg">
+                  Começar agora
+                  <ArrowRight className="h-4 w-4" />
+                </ButtonAnchor>
+                <ButtonLink href="#produto" variant="outline" size="lg">
+                  <PlayCircle className="h-4 w-4" />
+                  Ver como funciona
+                </ButtonLink>
+              </motion.div>
+
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.32 }}
+                className="mt-3 text-[11.5px] text-white/30 sm:text-[12.5px]"
+              >
+                Planos a partir de R$ 19,90/mês · Fale com a gente pelo WhatsApp
+              </motion.p>
+            </div>
+
+            {/* Em telas pequenas o globo não cabe atrás do texto — mostra aqui, no fluxo normal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              className="relative mx-auto aspect-[16/10] w-full max-w-sm overflow-hidden rounded-2xl border border-white/[0.07] sm:max-w-md lg:hidden"
+            >
+              <Image src="/images/hero-globe.png" alt="" fill sizes="(max-width: 1024px) 90vw, 0px" className="object-cover" />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950/70 via-transparent to-transparent" />
+            </motion.div>
+          </div>
+        </div>
+
+        <div className="relative mt-8 px-4 sm:mt-16 sm:px-6">
           <DashboardMock />
         </div>
       </section>
 
       {/* ---------------------------------------------------------- PROBLEMA */}
-      <section className="border-t border-white/[0.06] bg-ink-900/30 py-20 sm:py-28">
+      <section className="border-t border-white/[0.06] bg-ink-900/30 py-12 sm:py-28">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <FadeIn className="mx-auto max-w-xl text-center">
             <h2 className="text-balance font-display text-[28px] font-semibold leading-tight tracking-tight text-white sm:text-[36px]">
@@ -176,15 +214,17 @@ export function LandingView({ isLoggedIn }: { isLoggedIn: boolean }) {
             </p>
           </FadeIn>
 
-          <Stagger className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Stagger className="mt-8 grid grid-cols-2 gap-3 sm:mt-12 sm:gap-4 lg:grid-cols-3">
             {PROBLEMS.map((problem) => (
               <StaggerItem key={problem.title}>
-                <div className="surface h-full p-5">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10 text-red-300">
-                    <problem.icon className="h-4.5 w-4.5" />
+                <div className="surface h-full p-3.5 sm:p-5">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10 text-red-300 sm:h-10 sm:w-10">
+                    <problem.icon className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
                   </span>
-                  <p className="mt-4 text-[14.5px] font-semibold text-white">{problem.title}</p>
-                  <p className="mt-1.5 text-[13px] leading-relaxed text-white/45">{problem.description}</p>
+                  <p className="mt-3 text-[13px] font-semibold text-white sm:mt-4 sm:text-[14.5px]">{problem.title}</p>
+                  <p className="mt-1 text-[11.5px] leading-relaxed text-white/45 sm:mt-1.5 sm:text-[13px]">
+                    {problem.description}
+                  </p>
                 </div>
               </StaggerItem>
             ))}
@@ -193,7 +233,7 @@ export function LandingView({ isLoggedIn }: { isLoggedIn: boolean }) {
       </section>
 
       {/* ---------------------------------------------------------- MÓDULOS */}
-      <section id="produto" className="scroll-mt-20 py-20 sm:py-28">
+      <section id="produto" className="scroll-mt-20 py-12 sm:py-28">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <FadeIn className="mx-auto max-w-xl text-center">
             <span className="inline-flex items-center gap-2 rounded-full border border-nexo-500/25 bg-nexo-500/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-nexo-200">
@@ -245,7 +285,7 @@ export function LandingView({ isLoggedIn }: { isLoggedIn: boolean }) {
       </section>
 
       {/* ---------------------------------------------------------- PROVA SOCIAL */}
-      <section className="border-y border-white/[0.06] bg-ink-900/30 py-16 sm:py-20">
+      <section className="border-y border-white/[0.06] bg-ink-900/30 py-10 sm:py-20">
         <FadeIn className="mx-auto max-w-2xl px-4 text-center sm:px-6">
           <p className="text-balance font-display text-[22px] font-medium italic leading-relaxed text-white/80 sm:text-[26px]">
             &ldquo;{TESTIMONIAL.quote}&rdquo;
@@ -257,7 +297,7 @@ export function LandingView({ isLoggedIn }: { isLoggedIn: boolean }) {
       </section>
 
       {/* ---------------------------------------------------------- PLANOS */}
-      <section className="py-20 sm:py-28">
+      <section className="py-12 sm:py-28">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <FadeIn className="mx-auto max-w-xl text-center">
             <h2 className="text-balance font-display text-[28px] font-semibold leading-tight tracking-tight text-white sm:text-[36px]">
@@ -322,17 +362,19 @@ export function LandingView({ isLoggedIn }: { isLoggedIn: boolean }) {
       </section>
 
       {/* ---------------------------------------------------------- FAQ */}
-      <section id="faq" className="scroll-mt-20 border-t border-white/[0.06] bg-ink-900/30 py-20 sm:py-28">
+      <section id="faq" className="scroll-mt-20 border-t border-white/[0.06] bg-ink-900/30 py-12 sm:py-28">
         <div className="mx-auto max-w-2xl px-4 sm:px-6">
           <FadeIn className="text-center">
             <h2 className="font-display text-[28px] font-semibold text-white">Perguntas frequentes</h2>
           </FadeIn>
-          <Stagger className="mt-10 space-y-3">
+          <Stagger className="mt-8 grid gap-3 sm:mt-10 sm:grid-cols-2">
             {FAQ.map((item) => (
               <StaggerItem key={item.q}>
-                <div className="surface p-5">
-                  <p className="text-[14.5px] font-medium text-white">{item.q}</p>
-                  <p className="mt-2 text-[13.5px] leading-relaxed text-white/50">{item.a}</p>
+                <div className="surface h-full p-4 sm:p-5">
+                  <p className="text-[13.5px] font-medium text-white sm:text-[14.5px]">{item.q}</p>
+                  <p className="mt-1.5 text-[12.5px] leading-relaxed text-white/50 sm:mt-2 sm:text-[13.5px]">
+                    {item.a}
+                  </p>
                 </div>
               </StaggerItem>
             ))}
@@ -341,7 +383,7 @@ export function LandingView({ isLoggedIn }: { isLoggedIn: boolean }) {
       </section>
 
       {/* ---------------------------------------------------------- CTA FINAL */}
-      <section className="py-20 sm:py-28">
+      <section className="py-12 sm:py-28">
         <FadeIn className="mx-auto max-w-3xl px-4 text-center sm:px-6">
           <div className="ring-gradient relative overflow-hidden rounded-3xl bg-gradient-to-br from-nexo-900/50 to-ink-900/60 p-10 sm:p-14">
             <div className="pointer-events-none absolute -right-10 -top-10 h-56 w-56 animate-pulse-glow rounded-full bg-nexo-500/25 blur-[100px]" />
